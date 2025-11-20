@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>P2P File Share</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* ─────────────────────────────
+   基本デザイン：元のP2P Chatと同じテイスト
+────────────────────────────── */
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 10% 20%, #f8cdda 0, #1d2b64 60%, #141e30 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 12px 10px 20px;
+    box-sizing: border-box;
+}
+
+/* カード共通 */
+.card {
+    width: 100%;
+    max-width: 460px;
+    background: rgba(255,255,255,0.10);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.18);
+    padding: 20px 18px 18px;
+    animation: fadeIn 0.45s ease;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    margin: 10px auto;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* タイトル部分 */
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.title-accent {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: conic-gradient(from 200deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee, #ff9a9e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+}
+h2 {
+    margin: 0;
+    text-align: center;
+    font-weight: 600;
+    color: #f9fafb;
+    letter-spacing: 0.03em;
+}
+
+/* ステータスラベル */
+.status-pill {
+    align-self: center;
+    margin: 6px 0 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #e5ecff;
+    background: rgba(15,118,255,0.16);
+    border: 1px solid rgba(144,202,249,0.4);
+}
+
+/* ボタン */
+button {
+    width: 100%;
+    padding: 11px;
+    margin-top: 10px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #4f46e5, #22d3ee);
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    box-shadow: 0 6px 14px rgba(15,23,42,0.45);
+}
+button:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(15,23,42,0.6);
+}
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(15,23,42,0.5);
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+}
+
+/* ロール選択用ボタン */
+.role-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+.role-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,0.8);
+    background: rgba(15,23,42,0.85);
+    color: #e5e7eb;
+    font-size: 13px;
+    box-shadow: none;
+}
+.role-btn.selected {
+    border: none;
+    background: linear-gradient(135deg, #4f46e5, #22d3ee);
+    color: #f9fafb;
+    box-shadow: 0 6px 14px rgba(15,23,42,0.5);
+}
+
+/* サブボタン（小さいボタン） */
+.small-btn {
+    margin-top: 6px;
+    padding: 8px;
+    width: auto;
+    min-width: 72px;
+    border-radius: 12px;
+    font-size: 11px;
+    background: rgba(15,23,42,0.75);
+    box-shadow: none;
+}
+.small-btn:hover {
+    background: rgba(15,23,42,0.9);
+    box-shadow: none;
+}
+
+/* 入力フォーム */
+textarea, input {
+    width: 100%;
+    padding: 9px 10px;
+    margin-top: 6px;
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,0.8);
+    background: rgba(15,23,42,0.65);
+    color: #e5e7eb;
+    outline: none;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+textarea::placeholder,
+input::placeholder {
+    color: rgba(148,163,184,0.9);
+}
+
+/* ラベルテキスト */
+.label {
+    font-size: 13px;
+    color: #e5e7eb;
+    margin-top: 10px;
+}
+
+/* 接続ステータス表示 */
+#mainStatus {
+    text-align: center;
+    color: #e5ecff;
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+/* コード行 */
+.code-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+.code-row input {
+    flex: 1;
+    margin-top: 0;
+}
+.code-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* コネクションピル */
+.conn-pill {
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    background: rgba(15,23,42,0.75);
+    border: 1px solid rgba(148,163,184,0.7);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.conn-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #f97373;
+}
+.conn-dot.on {
+    background: #4ade80;
+}
+
+/* ファイル行 */
+.file-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
+}
+#fileInput {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 11px;
+    background: rgba(15,23,42,0.65);
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,0.8);
+    color: #e5e7eb;
+}
+
+/* 進捗バー */
+.progress-box {
+    margin-top: 10px;
+}
+.progress-label {
+    font-size: 12px;
+    color: #e5e7eb;
+    margin-bottom: 4px;
+}
+.progress-wrap {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(148,163,184,0.4);
+    overflow: hidden;
+}
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e, #38bdf8, #a855f7);
+    transition: width 0.12s linear;
+}
+
+/* ログ */
+#log {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    background: rgba(15,23,42,0.75);
+    border: 1px solid rgba(148,163,184,0.6);
+    font-size: 11px;
+    color: #e5e7eb;
+    max-height: 180px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+.log-line {
+    margin: 2px 0;
+}
+
+/* フッター */
+.footer {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(241,245,249,0.7);
+    letter-spacing: 0.04em;
+}
+
+/* PC時だけ中央寄せ */
+@media (min-width: 768px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <div class="title-row">
+        <div class="title-accent">📦</div>
+        <h2>P2P File Share</h2>
+    </div>
+    <div class="status-pill">サーバーにファイルを保存しない・ブラウザ同士で直結</div>
+
+    <div id="mainStatus">ロールを選択して接続コードを決めてください。</div>
+
+    <!-- 1. ロール選択 -->
+    <div class="label">1. ロール選択</div>
+    <div class="role-row">
+        <button id="hostBtn" class="role-btn">ホスト</button>
+        <button id="guestBtn" class="role-btn">ゲスト</button>
+    </div>
+
+    <!-- 2. 接続コード -->
+    <div class="label">2. 接続コード（数字）</div>
+    <div class="code-row">
+        <input id="roomCodeInput" type="text" inputmode="numeric" pattern="[0-9]*"
+               placeholder="6桁くらいの数字コード（例: 493821）">
+        <div class="code-btns">
+            <button id="genCodeBtn" class="small-btn">生成</button>
+            <button id="copyCodeBtn" class="small-btn">コピー</button>
+            <button id="pasteCodeBtn" class="small-btn">ペースト</button>
+        </div>
+    </div>
+
+    <button id="connectBtn">シグナリングに接続</button>
+
+    <div class="conn-pill" id="connPill">
+        <span class="conn-dot" id="connDot"></span>
+        <span id="connText">未接続</span>
+    </div>
+
+    <!-- 3. ファイル送信 -->
+    <div class="label">3. ファイル送信（最大1GB目安）</div>
+    <div class="file-row">
+        <input type="file" id="fileInput">
+        <button id="sendBtn" class="small-btn" disabled>送信</button>
+    </div>
+    <button id="cancelBtn" class="small-btn" disabled>送信キャンセル</button>
+
+    <div class="progress-box">
+        <div class="progress-label" id="progressText">送信 / 受信待機中</div>
+        <div class="progress-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+
+    <div id="log"></div>
+</div>
+
+<div class="footer">
+    taiboku_passent all right reserved
+</div>
+
+<script>
+/* ====== DOM ====== */
+const hostBtn = document.getElementById("hostBtn");
+const guestBtn = document.getElementById("guestBtn");
+const roomCodeInput = document.getElementById("roomCodeInput");
+const genCodeBtn = document.getElementById("genCodeBtn");
+const copyCodeBtn = document.getElementById("copyCodeBtn");
+const pasteCodeBtn = document.getElementById("pasteCodeBtn");
+const connectBtn = document.getElementById("connectBtn");
+
+const connPill = document.getElementById("connPill");
+const connDot = document.getElementById("connDot");
+const connText = document.getElementById("connText");
+
+const mainStatus = document.getElementById("mainStatus");
+const fileInput = document.getElementById("fileInput");
+const sendBtn = document.getElementById("sendBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
+const logEl = document.getElementById("log");
+
+/* ====== 状態 ====== */
+let role = null;             // "host" | "guest"
+let roomCode = "";
+let joinedSignaling = false;
+let pollTimer = null;
+
+let pc = null;
+let dataChannel = null;
+
+let fileSending = false;
+let fileReceiving = false;
+let sendingAbort = false;
+
+let incomingFileMeta = null;
+let incomingChunks = [];
+let incomingBytes = 0;
+
+const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB
+
+/* ====== ユーティリティ ====== */
+function log(text) {
+    const line = document.createElement("div");
+    line.className = "log-line";
+    const time = new Date().toLocaleTimeString("ja-JP", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+    line.textContent = `[${time}] ${text}`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+function setConn(connected) {
+    if (connected) {
+        connDot.classList.add("on");
+        connText.textContent = "シグナリング接続中";
+    } else {
+        connDot.classList.remove("on");
+        connText.textContent = "未接続";
+    }
+}
+
+function setProgress(ratio, label) {
+    const p = Math.max(0, Math.min(1, ratio || 0));
+    progressBar.style.width = (p * 100) + "%";
+    if (label !== undefined) progressText.textContent = label;
+}
+
+function humanSize(bytes) {
+    if (bytes === 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    const value = bytes / Math.pow(1024, i);
+    return value.toFixed(value >= 10 ? 1 : 2) + " " + units[i];
+}
+
+/* ====== ロール選択 ====== */
+hostBtn.addEventListener("click", () => {
+    role = "host";
+    hostBtn.classList.add("selected");
+    guestBtn.classList.remove("selected");
+    mainStatus.textContent = "ホストとして部屋を作ります。コードを決めて相手に教えてください。";
+});
+
+guestBtn.addEventListener("click", () => {
+    role = "guest";
+    guestBtn.classList.add("selected");
+    hostBtn.classList.remove("selected");
+    mainStatus.textContent = "ゲストとして参加します。ホストからもらったコードを入力してください。";
+});
+
+/* ====== コード生成・コピー・ペースト ====== */
+genCodeBtn.addEventListener("click", () => {
+    const code = Math.floor(Math.random() * 900000) + 100000; // 6桁
+    roomCodeInput.value = String(code);
+});
+
+copyCodeBtn.addEventListener("click", () => {
+    const text = roomCodeInput.value.trim();
+    if (!text) {
+        alert("コピーするコードがありません");
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => alert("コードをコピーしました"))
+            .catch(() => alert("コピーに失敗しました"));
+    } else {
+        roomCodeInput.select();
+        document.execCommand("copy");
+        alert("コードをコピーしました（古いAPI）");
+    }
+});
+
+pasteCodeBtn.addEventListener("click", async () => {
+    if (!(navigator.clipboard && navigator.clipboard.readText)) {
+        alert("この環境ではペーストAPIが使えません。長押しで貼り付けてください。");
+        return;
+    }
+    try {
+        const text = await navigator.clipboard.readText();
+        roomCodeInput.value = text;
+    } catch {
+        alert("ペーストに失敗しました");
+    }
+});
+
+/* ====== シグナリングAPI（短ポーリング） ====== */
+async function joinSignaling() {
+    const res = await fetch("/api/signaling", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "join",
+            roomCode,
+            role,
+        }),
+    });
+    if (!res.ok) throw new Error("join failed");
+}
+
+async function sendSignal(payload) {
+    if (!joinedSignaling) return;
+    try {
+        await fetch("/api/signaling", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "send",
+                roomCode,
+                role,
+                payload,
+            }),
+        });
+    } catch (e) {
+        console.error("sendSignal error:", e);
+        log("シグナリング送信中にエラーが発生しました。");
+    }
+}
+
+async function pollSignals() {
+    if (!joinedSignaling || !roomCode || !role) return;
+    try {
+        const res = await fetch("/api/signaling", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "recv",
+                roomCode,
+                role,
+            }),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const messages = data.messages || [];
+        for (const msg of messages) {
+            if (msg && msg.payload) {
+                await handleSignal(msg.payload);
+            }
+        }
+    } catch (e) {
+        console.error("poll error:", e);
+    }
+}
+
+function startPolling() {
+    if (pollTimer) return;
+    pollSignals();
+    pollTimer = setInterval(pollSignals, 1000);
+}
+
+function stopPolling() {
+    if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    }
+}
+
+async function leaveSignaling() {
+    if (!joinedSignaling) return;
+    try {
+        await fetch("/api/signaling", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "leave",
+                roomCode,
+                role,
+            }),
+        });
+    } catch (e) {
+        console.error("leave error:", e);
+    }
+    joinedSignaling = false;
+    setConn(false);
+    stopPolling();
+}
+
+window.addEventListener("beforeunload", () => {
+    leaveSignaling();
+});
+
+/* ====== 接続ボタン ====== */
+connectBtn.addEventListener("click", async () => {
+    if (joinedSignaling) {
+        log("すでにシグナリングに参加済みです。");
+        return;
+    }
+
+    roomCode = roomCodeInput.value.trim();
+    if (!roomCode) {
+        alert("接続コードを入力してください。");
+        return;
+    }
+    if (!role) {
+        alert("ホストかゲストを選択してください。");
+        return;
+    }
+
+    try {
+        await joinSignaling();
+        joinedSignaling = true;
+        setConn(true);
+        log(`シグナリングに参加しました。部屋コード: ${roomCode}`);
+        mainStatus.textContent = "相手が同じコードで接続するとP2P接続を開始します。";
+        startPolling();
+        initPeerConnectionIfNeeded();
+    } catch (e) {
+        console.error(e);
+        log("シグナリング接続に失敗しました。");
+        mainStatus.textContent = "シグナリング接続に失敗しました。";
+    }
+});
+
+/* ====== WebRTC ピア接続 ====== */
+const rtcConfig = {
+    iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+    ],
+};
+
+function initPeerConnectionIfNeeded() {
+    if (pc) return;
+    pc = new RTCPeerConnection(rtcConfig);
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate) {
+            sendSignal({
+                type: "ice",
+                candidate: event.candidate,
+            });
+        }
+    };
+
+    pc.onconnectionstatechange = () => {
+        log(`PeerConnection state: ${pc.connectionState}`);
+        if (["disconnected", "failed", "closed"].includes(pc.connectionState)) {
+            cleanupConnection();
+            mainStatus.textContent = "P2P接続が切断されました。";
+        }
+    };
+
+    if (role === "guest") {
+        pc.ondatachannel = (event) => {
+            dataChannel = event.channel;
+            setupDataChannel();
+        };
+    }
+}
+
+async function handleSignal(payload) {
+    switch (payload.type) {
+        case "ready":
+            log("相手が入室しました。WebRTC 接続を開始します。");
+            await onReady();
+            break;
+        case "offer":
+            if (role === "guest") {
+                await onOffer(payload.sdp);
+            }
+            break;
+        case "answer":
+            if (role === "host") {
+                await onAnswer(payload.sdp);
+            }
+            break;
+        case "ice":
+            if (pc && payload.candidate) {
+                try {
+                    await pc.addIceCandidate(payload.candidate);
+                } catch (e) {
+                    console.error("Error adding ICE candidate:", e);
+                }
+            }
+            break;
+        case "peer-left":
+            log("相手がシグナリングから離脱しました。");
+            cleanupConnection();
+            break;
+        case "cancel":
+            log("相手が送信をキャンセルしました。");
+            break;
+    }
+}
+
+async function onReady() {
+    initPeerConnectionIfNeeded();
+
+    if (role === "host" && !dataChannel) {
+        dataChannel = pc.createDataChannel("file");
+        setupDataChannel();
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        await sendSignal({
+            type: "offer",
+            sdp: pc.localDescription,
+        });
+
+        log("SDP offer を送信しました。");
+    } else if (role === "guest") {
+        log("ホストからの offer を待機中です。");
+    }
+}
+
+async function onOffer(sdp) {
+    initPeerConnectionIfNeeded();
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+
+    await sendSignal({
+        type: "answer",
+        sdp: pc.localDescription,
+    });
+
+    log("SDP answer を送信しました。");
+}
+
+async function onAnswer(sdp) {
+    if (!pc) return;
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    log("answer を受信し、接続処理中です。");
+}
+
+function setupDataChannel() {
+    if (!dataChannel) return;
+
+    dataChannel.binaryType = "arraybuffer";
+
+    dataChannel.onopen = () => {
+        log("DataChannel open: ファイル送信が可能になりました。");
+        mainStatus.textContent = "P2P接続完了。ファイルを選んで送信できます。";
+        sendBtn.disabled = false;
+    };
+
+    dataChannel.onclose = () => {
+        log("DataChannel closed");
+        sendBtn.disabled = true;
+        cancelBtn.disabled = true;
+    };
+
+    dataChannel.onerror = (e) => {
+        console.error("DataChannel error:", e);
+        log("DataChannel エラーが発生しました。");
+    };
+
+    dataChannel.onmessage = (event) => {
+        const data = event.data;
+
+        if (typeof data === "string") {
+            try {
+                const obj = JSON.parse(data);
+                if (obj && obj.type === "file-meta") {
+                    incomingFileMeta = obj;
+                    incomingChunks = [];
+                    incomingBytes = 0;
+                    fileReceiving = true;
+                    log(`ファイル情報受信: ${obj.name} (${humanSize(obj.size)}). 受信開始。`);
+                    setProgress(0, "受信中: 0%");
+                    return;
+                }
+            } catch (e) {
+                // JSON じゃなければEOF判定
+                if (data === "EOF") {
+                    if (fileReceiving && incomingFileMeta) {
+                        finalizeReceive();
+                    }
+                    return;
+                }
+            }
+        } else if (data instanceof ArrayBuffer) {
+            if (!fileReceiving || !incomingFileMeta) {
+                log("警告: メタ情報なしでバイナリデータを受信しました。");
+                return;
+            }
+            incomingChunks.push(new Uint8Array(data));
+            incomingBytes += data.byteLength;
+
+            const ratio = incomingFileMeta.size
+                ? incomingBytes / incomingFileMeta.size
+                : 0;
+            const percent = (ratio * 100).toFixed(1);
+            setProgress(ratio, `受信中: ${percent}% (${humanSize(incomingBytes)})`);
+        }
+    };
+}
+
+function finalizeReceive() {
+    fileReceiving = false;
+    const meta = incomingFileMeta;
+    const totalBytes = incomingBytes;
+
+    log(`受信完了: ${meta.name} (${humanSize(totalBytes)}). ブラウザで保存します。`);
+
+    const blob = new Blob(incomingChunks);
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = meta.name || "download.bin";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    setProgress(1, "受信完了");
+    incomingFileMeta = null;
+    incomingChunks = [];
+    incomingBytes = 0;
+}
+
+function cleanupConnection() {
+    sendBtn.disabled = true;
+    cancelBtn.disabled = true;
+    fileSending = false;
+    fileReceiving = false;
+
+    if (dataChannel) {
+        try { dataChannel.close(); } catch {}
+        dataChannel = null;
+    }
+    if (pc) {
+        try { pc.close(); } catch {}
+        pc = null;
+    }
+    setProgress(0, "送信 / 受信待機中");
+}
+
+/* ====== ファイル送信 ====== */
+sendBtn.addEventListener("click", async () => {
+    if (!dataChannel || dataChannel.readyState !== "open") {
+        alert("DataChannel が開いていません。接続状態を確認してください。");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    if (!file) {
+        alert("送信するファイルを選択してください。");
+        return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+        alert(`ファイルサイズが大きすぎます。最大 ${humanSize(MAX_FILE_SIZE)} までにしてください。`);
+        return;
+    }
+
+    fileSending = true;
+    sendingAbort = false;
+    sendBtn.disabled = true;
+    cancelBtn.disabled = false;
+
+    log(`送信開始: ${file.name} (${humanSize(file.size)}). チャンク分割して送信します。`);
+    setProgress(0, "送信中: 0%");
+
+    try {
+        await sendFileInChunks(file);
+        if (!sendingAbort) {
+            log("送信完了しました。");
+            setProgress(1, "送信完了");
+        } else {
+            log("送信をキャンセルしました。");
+        }
+    } catch (e) {
+        console.error(e);
+        log("送信中にエラーが発生しました。");
+    } finally {
+        fileSending = false;
+        cancelBtn.disabled = true;
+        if (dataChannel && dataChannel.readyState === "open") {
+            sendBtn.disabled = false;
+        }
+    }
+});
+
+cancelBtn.addEventListener("click", () => {
+    if (!fileSending) return;
+    sendingAbort = true;
+    cancelBtn.disabled = true;
+    if (dataChannel && dataChannel.readyState === "open") {
+        try {
+            dataChannel.send(JSON.stringify({ type: "cancel" }));
+        } catch {}
+    }
+    log("送信キャンセル要求を出しました。");
+});
+
+async function sendFileInChunks(file) {
+    const chunkSize = 64 * 1024; // 64KB
+    let offset = 0;
+
+    // メタ情報
+    dataChannel.send(JSON.stringify({
+        type: "file-meta",
+        name: file.name,
+        size: file.size,
+        lastModified: file.lastModified,
+    }));
+
+    while (offset < file.size) {
+        if (sendingAbort) break;
+
+        const slice = file.slice(offset, offset + chunkSize);
+        const buffer = await slice.arrayBuffer();
+
+        dataChannel.send(buffer);
+        offset += chunkSize;
+
+        const ratio = offset / file.size;
+        const percent = (ratio * 100).toFixed(1);
+        setProgress(ratio, `送信中: ${percent}% (${humanSize(offset)})`);
+
+        if (dataChannel.bufferedAmount > 16 * 1024 * 1024) {
+            await waitForBufferedAmountLow(dataChannel, 8 * 1024 * 1024);
+        }
+    }
+
+    if (!sendingAbort) {
+        dataChannel.send("EOF");
+    }
+}
+
+function waitForBufferedAmountLow(dc, threshold) {
+    return new Promise((resolve) => {
+        function check() {
+            if (dc.bufferedAmount <= threshold) {
+                dc.removeEventListener("bufferedamountlow", onLow);
+                resolve();
+            }
+        }
+        function onLow() {
+            check();
+        }
+
+        dc.addEventListener("bufferedamountlow", onLow);
+        check();
+
+        setTimeout(() => {
+            dc.removeEventListener("bufferedamountlow", onLow);
+            resolve();
+        }, 3000);
+    });
+}
+
+/* 初期状態 */
+setConn(false);
+setProgress(0, "送信 / 受信待機中");
+</script>
+
+</body>
+</html>
