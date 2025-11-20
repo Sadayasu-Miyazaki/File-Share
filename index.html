@@ -2,688 +2,998 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>P2P Chat – Simple Host/Guest</title>
+<title>P2P File Share</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* ───────── 基本レイアウト ───────── */
-* {
-  box-sizing: border-box;
-}
-
+/* ─────────────────────────────
+   基本デザイン
+────────────────────────────── */
 body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 10% 20%, #f97373 0, transparent 55%),
-    radial-gradient(circle at 90% 80%, #1d2b64 0, transparent 55%),
-    linear-gradient(145deg, #020617, #020617 40%, #020617 100%);
-  padding: 16px 10px 24px;
-  color: #e5e7eb;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 10% 20%, #f8cdda 0, #1d2b64 60%, #141e30 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 12px 10px 20px;
+    box-sizing: border-box;
 }
 
-.container {
-  width: 100%;
-  max-width: 480px;
-}
-
-/* ───────── カード共通 ───────── */
+/* カード共通 */
 .card {
-  width: 100%;
-  background: rgba(15, 23, 42, 0.9);
-  border-radius: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.9);
-  backdrop-filter: blur(22px);
-  padding: 18px 16px 16px;
-  margin-bottom: 12px;
-  animation: cardIn 0.35s ease-out;
+    width: 100%;
+    max-width: 460px;
+    background: rgba(255,255,255,0.10);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.18);
+    padding: 20px 18px 18px;
+    animation: fadeIn 0.45s ease;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    margin: 10px auto;
 }
 
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(14px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.hidden {
-  display: none;
-}
-
-/* ───────── タイトル行 ───────── */
+/* タイトル部分 */
 .title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.title-accent {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: conic-gradient(from 200deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee, #ff9a9e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+}
+h2 {
+    margin: 0;
+    text-align: center;
+    font-weight: 600;
+    color: #f9fafb;
+    letter-spacing: 0.03em;
 }
 
-.title-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  background: conic-gradient(from 200deg, #f97373, #fb7185, #6366f1, #0ea5e9, #f97373);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
+/* ステータスラベル */
+.status-pill {
+    align-self: center;
+    margin: 6px 0 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #e5ecff;
+    background: rgba(15,118,255,0.16);
+    border: 1px solid rgba(144,202,249,0.4);
 }
 
-.card h2 {
-  margin: 0;
-  font-size: 18px;
-  letter-spacing: 0.03em;
+/* 共通ラベル */
+.label {
+    font-size: 13px;
+    color: #e5e7eb;
+    margin-top: 10px;
 }
 
-.sub-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 6px 0 10px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  background: rgba(15, 118, 255, 0.16);
-  border: 1px solid rgba(144, 202, 249, 0.4);
-  color: #e5ecff;
+/* ボタン共通 */
+button {
+    width: 100%;
+    padding: 11px;
+    margin-top: 10px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #4f46e5, #22d3ee);
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    box-shadow: 0 6px 14px rgba(15,23,42,0.45);
+}
+button:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(15,23,42,0.6);
+}
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(15,23,42,0.5);
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
 }
 
-/* ───────── 最初の選択画面 ───────── */
-.role-card p {
-  margin: 4px 0 8px;
-  font-size: 12px;
-  color: rgba(209, 213, 219, 0.9);
+/* ロール選択ボタン */
+.role-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
 }
-
-.role-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 4px;
-}
-
 .role-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 11px 13px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(37, 99, 235, 0.85));
-  color: #f9fafb;
-  text-align: left;
-  cursor: pointer;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.8);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    width: 100%;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,0.8);
+    background: rgba(15,23,42,0.85);
+    color: #e5e7eb;
+    font-size: 13px;
+    box-shadow: none;
+}
+.role-btn.selected {
+    border: none;
+    background: linear-gradient(135deg, #4f46e5, #22d3ee);
+    color: #f9fafb;
+    box-shadow: 0 6px 14px rgba(15,23,42,0.5);
 }
 
-.role-btn.secondary {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(55, 65, 81, 0.9));
+/* 小さいボタン */
+.small-btn {
+    margin-top: 6px;
+    padding: 8px;
+    width: auto;
+    min-width: 72px;
+    border-radius: 12px;
+    font-size: 11px;
+    background: rgba(15,23,42,0.75);
+    box-shadow: none;
+}
+.small-btn:hover {
+    background: rgba(15,23,42,0.9);
+    box-shadow: none;
 }
 
-.role-btn:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.9);
+/* 入力系 */
+textarea, input {
+    width: 100%;
+    padding: 9px 10px;
+    margin-top: 6px;
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,0.8);
+    background: rgba(15,23,42,0.65);
+    color: #e5e7eb;
+    outline: none;
+    font-size: 13px;
+    box-sizing: border-box;
 }
-
-.role-main {
-  flex: 1;
-}
-
-.role-main .label {
-  font-size: 12px;
-  color: rgba(209, 213, 219, 0.95);
-}
-
-.role-main .desc {
-  font-size: 11px;
-  color: rgba(148, 163, 184, 0.95);
-  margin-top: 2px;
-}
-
-.role-tag {
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.85);
-}
-
-/* ───────── 手順表示 ───────── */
-.step {
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(55, 65, 81, 0.8);
-}
-
-.step-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.step-num {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.9);
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.step-title {
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.step-body {
-  font-size: 11px;
-  color: rgba(209, 213, 219, 0.9);
-}
-
-/* ───────── 入力系 ───────── */
-label.section-label {
-  margin-top: 10px;
-  display: block;
-  font-size: 12px;
-}
-
-textarea,
-input[type="text"] {
-  width: 100%;
-  margin-top: 4px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: rgba(15, 23, 42, 0.92);
-  color: #e5e7eb;
-  font-size: 12px;
-  resize: vertical;
-}
-
 textarea::placeholder,
 input::placeholder {
-  color: rgba(148, 163, 184, 0.9);
+    color: rgba(148,163,184,0.9);
 }
 
-/* ───────── ボタン ───────── */
-.btn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  color: #f9fafb;
-  background: linear-gradient(135deg, #4f46e5, #22d3ee);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.7);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+/* メインステータス */
+#mainStatus {
+    text-align: center;
+    color: #e5ecff;
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: 4px;
 }
 
-.btn:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.9);
+/* コード行 */
+.code-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+.code-row input {
+    flex: 1;
+    margin-top: 0;
+}
+.code-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.btn:active {
-  transform: translateY(0);
-  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.7);
-}
-
-.btn-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.btn-small {
-  flex: 1;
-  padding: 6px 8px;
-  font-size: 11px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.75);
-  box-shadow: none;
-}
-
-/* ───────── チャット画面 ───────── */
-.status-text {
-  font-size: 11px;
-  color: rgba(209, 213, 219, 0.9);
-  margin-top: 2px;
-}
-
-.chat-log {
-  margin-top: 10px;
-  padding: 8px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(55, 65, 81, 0.9);
-  min-height: 180px;
-  max-height: 55vh;
-  overflow-y: auto;
-  font-size: 12px;
-}
-
-.msg {
-  margin: 6px 0;
-  padding: 7px 10px;
-  border-radius: 14px;
-  max-width: 80%;
-  animation: msgIn 0.2s ease-out;
-  word-wrap: break-word;
-}
-
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(3px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.msg.me {
-  margin-left: auto;
-  background: linear-gradient(135deg, #4f46e5, #22d3ee);
-  color: #f9fafb;
-}
-
-.msg.other {
-  background: rgba(15, 23, 42, 0.98);
-  border: 1px solid rgba(75, 85, 99, 0.9);
-}
-
-.msg.system {
-  margin: 4px auto;
-  text-align: center;
-  font-size: 10px;
-  color: rgba(148, 163, 184, 0.95);
-  background: transparent;
-}
-
-.chat-input-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-#msgInput {
-  flex: 1;
-  max-height: 90px;
-}
-
-.send-btn {
-  width: 86px;
-}
-
-/* ───────── メディア調整 ───────── */
-@media (min-width: 768px) {
-  body {
-    padding: 20px;
+/* コネクションピル */
+.conn-pill {
+    align-self: flex-start;
+    margin-top: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    background: rgba(15,23,42,0.75);
+    border: 1px solid rgba(148,163,184,0.7);
+    display: inline-flex;
     align-items: center;
-  }
+    gap: 6px;
+}
+.conn-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #f97373;
+}
+.conn-dot.on {
+    background: #4ade80;
+}
+
+/* ファイル行 */
+.file-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
+}
+#fileInput {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 11px;
+    background: rgba(15,23,42,0.65);
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,0.8);
+    color: #e5e7eb;
+}
+
+/* 進捗バー */
+.progress-box {
+    margin-top: 10px;
+}
+.progress-label {
+    font-size: 12px;
+    color: #e5e7eb;
+    margin-bottom: 4px;
+}
+.progress-wrap {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(148,163,184,0.4);
+    overflow: hidden;
+}
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e, #38bdf8, #a855f7);
+    transition: width 0.12s linear;
+}
+
+/* ログ */
+#log {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    background: rgba(15,23,42,0.75);
+    border: 1px solid rgba(148,163,184,0.6);
+    font-size: 11px;
+    color: #e5e7eb;
+    max-height: 180px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+.log-line {
+    margin: 2px 0;
+}
+
+/* フッター */
+.footer {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(241,245,249,0.7);
+    letter-spacing: 0.04em;
+}
+
+/* 非表示用 */
+.hidden {
+    display: none;
+}
+
+/* PC時だけ中央寄せ */
+@media (min-width: 768px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
 }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <!-- ① 役割選択画面 -->
-  <div class="card role-card" id="screenSelect">
+<div class="card">
     <div class="title-row">
-      <div class="title-icon">💬</div>
-      <h2>P2P Chat</h2>
+        <div class="title-accent">📦</div>
+        <h2>P2P File Share</h2>
     </div>
-    <div class="sub-pill">サーバーに履歴を残さず、ブラウザ同士で直接通信</div>
-    <p>2人で使う想定です。同じ時間にこのページを開いて、どちらか一方が「Aさん（先にはじめる）」、もう一方が「Bさん（あとから入る）」を押してください。</p>
+    <div class="status-pill">サーバーにファイルを保存しない・ブラウザ同士で直接送受信</div>
 
-    <div class="role-buttons">
-      <button class="role-btn" onclick="selectRole('host')">
-        <div class="role-main">
-          <div class="label">Aさん（先にはじめる人）</div>
-          <div class="desc">先に接続の準備をする人はこちら。出てきたコードを相手に送ります。</div>
+    <div id="mainStatus">まず「送る側（ホスト）」か「受け取る側（ゲスト）」を選んでください。</div>
+
+    <!-- ステップ1: ロール選択 -->
+    <div class="label">STEP 1. あなたの役割</div>
+    <div class="role-row">
+        <button id="hostBtn" class="role-btn">送る側（ホスト）</button>
+        <button id="guestBtn" class="role-btn">受け取る側（ゲスト）</button>
+    </div>
+
+    <!-- ステップ2: 接続コードとシグナリング -->
+    <div id="step2" class="hidden">
+        <div class="label" id="step2Label">
+            STEP 2. 接続コード
         </div>
-        <div class="role-tag">ホスト側</div>
-      </button>
-
-      <button class="role-btn secondary" onclick="selectRole('guest')">
-        <div class="role-main">
-          <div class="label">Bさん（あとから入る人）</div>
-          <div class="desc">Aさんから送られてきたコードを貼って接続します。</div>
+        <div class="code-row">
+            <input id="roomCodeInput" type="text" inputmode="numeric" pattern="[0-9]*"
+                   placeholder="6桁くらいの数字コード（例: 493821）">
+            <div class="code-btns">
+                <button id="genCodeBtn" class="small-btn">生成</button>
+                <button id="copyCodeBtn" class="small-btn">コピー</button>
+                <button id="pasteCodeBtn" class="small-btn">ペースト</button>
+            </div>
         </div>
-        <div class="role-tag">ゲスト側</div>
-      </button>
-    </div>
-  </div>
 
-  <!-- ② ホスト画面（Aさん） -->
-  <div class="card hidden" id="screenHost">
-    <div class="title-row">
-      <div class="title-icon">🛰</div>
-      <h2>Aさんの画面（ホスト）</h2>
-    </div>
-    <div class="sub-pill">先に接続を始める人用の手順です</div>
+        <button id="connectBtn">シグナリングに接続</button>
 
-    <div class="step">
-      <div class="step-header">
-        <div class="step-num">①</div>
-        <div class="step-title">接続コード（Offer）を作る</div>
-      </div>
-      <div class="step-body">
-        「接続コードを作成」ボタンを押します。数秒すると、下のテキスト欄に長い文字列が出ます。
-        それを<span style="font-weight:600;">Bさんにコピーして送って</span>ください。
-      </div>
+        <div class="conn-pill" id="connPill">
+            <span class="conn-dot" id="connDot"></span>
+            <span id="connText">未接続</span>
+        </div>
     </div>
 
-    <button class="btn" id="btnCreateOffer">接続コードを作成（Aさん用）</button>
-    <label class="section-label" for="offerText">Aさんの接続コード（Offer）</label>
-    <textarea id="offerText" rows="4" placeholder="ここにAさんの接続コード（Offer）が自動で入ります"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-small" type="button" onclick="copyText('offerText')">OfferをコピーしてBさんに送る</button>
+    <!-- ステップ3: ファイル送信 -->
+    <div id="step3" class="hidden">
+        <div class="label">STEP 3. ファイル送信（最大1GB目安）</div>
+        <div class="file-row">
+            <input type="file" id="fileInput">
+            <button id="sendBtn" class="small-btn" disabled>送信</button>
+        </div>
+        <button id="cancelBtn" class="small-btn" disabled>送信キャンセル</button>
+
+        <div class="progress-box">
+            <div class="progress-label" id="progressText">送信 / 受信待機中</div>
+            <div class="progress-wrap">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+
+        <div id="log"></div>
     </div>
+</div>
 
-    <div class="step" style="margin-top:12px;">
-      <div class="step-header">
-        <div class="step-num">②</div>
-        <div class="step-title">Bさんから届いた Answer を貼る</div>
-      </div>
-      <div class="step-body">
-        Bさん側で生成された「Answer」というコードが送られてきたら、下の欄にそのまま貼り付けてください。
-      </div>
-    </div>
-
-    <label class="section-label" for="hostAnswerText">BさんからのAnswer</label>
-    <textarea id="hostAnswerText" rows="4" placeholder="Bさんから送られてきたAnswerをここに貼る"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-small" type="button" onclick="pasteText('hostAnswerText')">クリップボードから貼り付け</button>
-      <button class="btn btn-small" type="button" id="btnApplyAnswer">Answerを適用して接続</button>
-    </div>
-    <div class="status-text" id="hostStatus">まだ接続されていません。</div>
-  </div>
-
-  <!-- ③ ゲスト画面（Bさん） -->
-  <div class="card hidden" id="screenGuest">
-    <div class="title-row">
-      <div class="title-icon">📡</div>
-      <h2>Bさんの画面（ゲスト）</h2>
-    </div>
-    <div class="sub-pill">あとから接続に参加する人用の手順です</div>
-
-    <div class="step">
-      <div class="step-header">
-        <div class="step-num">①</div>
-        <div class="step-title">Aさんの接続コード（Offer）を貼る</div>
-      </div>
-      <div class="step-body">
-        Aさんから送られてきた長いコード（Offer）を、下の欄に丸ごと貼り付けてください。
-      </div>
-    </div>
-
-    <label class="section-label" for="guestOfferText">AさんのOffer</label>
-    <textarea id="guestOfferText" rows="4" placeholder="Aさんから送られたOfferをここに貼る"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-small" type="button" onclick="pasteText('guestOfferText')">クリップボードから貼り付け</button>
-    </div>
-
-    <div class="step" style="margin-top:12px;">
-      <div class="step-header">
-        <div class="step-num">②</div>
-        <div class="step-title">Answerを作ってAさんに返す</div>
-      </div>
-      <div class="step-body">
-        「Answerを作成」を押すと、下の欄にBさんのAnswerが表示されます。
-        それを<span style="font-weight:600;">Aさんにコピーして送って</span>ください。
-      </div>
-    </div>
-
-    <button class="btn" id="btnCreateAnswer">Answerを作成（Bさん用）</button>
-    <label class="section-label" for="guestAnswerOut">BさんのAnswer</label>
-    <textarea id="guestAnswerOut" rows="4" placeholder="ここにBさんのAnswerが自動で入ります"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-small" type="button" onclick="copyText('guestAnswerOut')">AnswerをコピーしてAさんに送る</button>
-    </div>
-    <div class="status-text" id="guestStatus">まだ接続されていません。</div>
-  </div>
-
-  <!-- ④ チャット画面 -->
-  <div class="card hidden" id="screenChat">
-    <div class="title-row">
-      <div class="title-icon">✨</div>
-      <h2>チャット</h2>
-    </div>
-    <div class="sub-pill" id="chatStatus">接続を待機中…</div>
-
-    <div class="chat-log" id="chatLog"></div>
-
-    <div class="chat-input-row">
-      <textarea id="msgInput" rows="2" placeholder="メッセージを入力（Enterで送信、Shift+Enterで改行）"></textarea>
-      <button class="btn send-btn" id="btnSend">送信</button>
-    </div>
-  </div>
-
+<div class="footer">
+    taiboku_passent all right reserved
 </div>
 
 <script>
+/* ====== DOM ====== */
+const hostBtn = document.getElementById("hostBtn");
+const guestBtn = document.getElementById("guestBtn");
+const roomCodeInput = document.getElementById("roomCodeInput");
+const genCodeBtn = document.getElementById("genCodeBtn");
+const copyCodeBtn = document.getElementById("copyCodeBtn");
+const pasteCodeBtn = document.getElementById("pasteCodeBtn");
+const connectBtn = document.getElementById("connectBtn");
+
+const connDot = document.getElementById("connDot");
+const connText = document.getElementById("connText");
+
+const mainStatus = document.getElementById("mainStatus");
+const step2 = document.getElementById("step2");
+const step2Label = document.getElementById("step2Label");
+const step3 = document.getElementById("step3");
+
+const fileInput = document.getElementById("fileInput");
+const sendBtn = document.getElementById("sendBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
+const logEl = document.getElementById("log");
+
+/* ====== 状態 ====== */
+let role = null;             // "host" | "guest"
+let roomCode = "";
+let joinedSignaling = false;
+let pollTimer = null;
+
 let pc = null;
-let channel = null;
-let currentRole = null; // 'host' or 'guest'
+let dataChannel = null;
 
-/* ===== DOM取得 ===== */
-const screenSelect = document.getElementById("screenSelect");
-const screenHost   = document.getElementById("screenHost");
-const screenGuest  = document.getElementById("screenGuest");
-const screenChat   = document.getElementById("screenChat");
+let fileSending = false;
+let fileReceiving = false;
+let sendingAbort = false;
 
-const hostStatus  = document.getElementById("hostStatus");
-const guestStatus = document.getElementById("guestStatus");
-const chatStatus  = document.getElementById("chatStatus");
+let incomingFileMeta = null;
+let incomingChunks = [];
+let incomingBytes = 0;
 
-const offerText        = document.getElementById("offerText");
-const hostAnswerText   = document.getElementById("hostAnswerText");
-const guestOfferText   = document.getElementById("guestOfferText");
-const guestAnswerOut   = document.getElementById("guestAnswerOut");
-const chatLog          = document.getElementById("chatLog");
-const msgInput         = document.getElementById("msgInput");
-const btnSend          = document.getElementById("btnSend");
+const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB
 
-/* ボタン */
-const btnCreateOffer  = document.getElementById("btnCreateOffer");
-const btnApplyAnswer  = document.getElementById("btnApplyAnswer");
-const btnCreateAnswer = document.getElementById("btnCreateAnswer");
-
-/* ===== 役割選択 ===== */
-function selectRole(role) {
-  currentRole = role;
-  screenSelect.classList.add("hidden");
-  initRTC();
-
-  if (role === "host") {
-    screenHost.classList.remove("hidden");
-  } else {
-    screenGuest.classList.remove("hidden");
-  }
+/* ====== ユーティリティ ====== */
+function log(text) {
+    const line = document.createElement("div");
+    line.className = "log-line";
+    const time = new Date().toLocaleTimeString("ja-JP", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+    line.textContent = `[${time}] ${text}`;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
 }
 
-/* ===== WebRTC初期化 ===== */
-function initRTC() {
-  const config = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-  };
-  pc = new RTCPeerConnection(config);
-
-  pc.onconnectionstatechange = () => {
-    const st = pc.connectionState;
-    console.log("connectionState =", st);
-    if (st === "connected") {
-      chatStatus.textContent = "接続完了";
-      addMsg("接続しました", "system");
-    } else if (st === "disconnected" || st === "failed" || st === "closed") {
-      chatStatus.textContent = "切断されました";
-      addMsg("接続が切断されました", "system");
+function setConn(connected) {
+    if (connected) {
+        connDot.classList.add("on");
+        connText.textContent = "シグナリング接続中";
+    } else {
+        connDot.classList.remove("on");
+        connText.textContent = "未接続";
     }
-  };
-
-  // ゲスト側は相手からDataChannelが送られてくる
-  pc.ondatachannel = event => {
-    channel = event.channel;
-    setupDataChannel();
-  };
 }
 
-/* ホスト側 DataChannel 作成 */
-function createHostChannel() {
-  channel = pc.createDataChannel("chat");
-  setupDataChannel();
+function setProgress(ratio, label) {
+    const p = Math.max(0, Math.min(1, ratio || 0));
+    progressBar.style.width = (p * 100) + "%";
+    if (label !== undefined) progressText.textContent = label;
 }
 
-/* DataChannel 共通設定 */
-function setupDataChannel() {
-  channel.onopen = () => {
-    console.log("DataChannel open");
-    screenChat.classList.remove("hidden");
-  };
-  channel.onclose = () => {
-    console.log("DataChannel closed");
-    addMsg("チャネルが閉じられました", "system");
-  };
-  channel.onerror = (e) => {
-    console.error("DataChannel error", e);
-    addMsg("通信エラーが発生しました", "system");
-  };
-  channel.onmessage = (event) => {
-    addMsg(String(event.data), "other");
-  };
+function humanSize(bytes) {
+    if (bytes === 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    const value = bytes / Math.pow(1024, i);
+    return value.toFixed(value >= 10 ? 1 : 2) + " " + units[i];
 }
 
-/* ===== メッセージ表示 ===== */
-function addMsg(text, type) {
-  const div = document.createElement("div");
-  div.className =
-    type === "me" ? "msg me" :
-    type === "other" ? "msg other" : "msg system";
-  div.textContent = text;
-  chatLog.appendChild(div);
-  chatLog.scrollTop = chatLog.scrollHeight;
+function showStep2() {
+    step2.classList.remove("hidden");
 }
 
-/* ===== コピー／ペースト ===== */
-function copyText(id) {
-  const el = document.getElementById(id);
-  el.select();
-  try {
-    document.execCommand("copy");
-    alert("コピーしました");
-  } catch {
-    alert("コピーに失敗しました。手動でコピーしてください。");
-  }
+function showStep3() {
+    step3.classList.remove("hidden");
 }
 
-function pasteText(id) {
-  const el = document.getElementById(id);
-  if (!navigator.clipboard) {
-    alert("クリップボードAPIが使えません。手動で貼り付けてください。");
-    return;
-  }
-  navigator.clipboard.readText().then(text => {
-    el.value = text;
-  }).catch(() => {
-    alert("クリップボードから読み取れませんでした。");
-  });
-}
-
-/* ===== ホスト側：Offer生成 ===== */
-btnCreateOffer.onclick = async () => {
-  if (!pc) initRTC();
-  createHostChannel();
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-
-  hostStatus.textContent = "接続コードを作成中…（数秒かかることがあります）";
-
-  pc.onicecandidate = e => {
-    if (!e.candidate) {
-      // すべてのICE候補が集まった
-      offerText.value = JSON.stringify(pc.localDescription);
-      hostStatus.textContent = "Offerが生成されました。Bさんに送ってください。";
+function updateRoleUI() {
+    if (role === "host") {
+        // ホスト用：コード生成＋コピーメイン
+        genCodeBtn.style.display = "block";
+        copyCodeBtn.style.display = "block";
+        pasteCodeBtn.style.display = "none";
+        step2Label.textContent = "STEP 2. 接続コード（ホスト用：新しく作って相手に教える）";
+        mainStatus.textContent = "あなたは『送る側（ホスト）』です。コードを作って相手に送ってください。";
+    } else if (role === "guest") {
+        // ゲスト用：ペーストメイン
+        genCodeBtn.style.display = "none";
+        copyCodeBtn.style.display = "none";
+        pasteCodeBtn.style.display = "block";
+        step2Label.textContent = "STEP 2. 接続コード（ゲスト用：教えてもらったコードを入れる）";
+        mainStatus.textContent = "あなたは『受け取る側（ゲスト）』です。ホストから教えてもらったコードを入れてください。";
     }
-  };
+}
+
+/* ====== ロール選択 ====== */
+hostBtn.addEventListener("click", () => {
+    role = "host";
+    hostBtn.classList.add("selected");
+    guestBtn.classList.remove("selected");
+    updateRoleUI();
+    showStep2();
+});
+
+guestBtn.addEventListener("click", () => {
+    role = "guest";
+    guestBtn.classList.add("selected");
+    hostBtn.classList.remove("selected");
+    updateRoleUI();
+    showStep2();
+});
+
+/* ====== コード生成・コピー・ペースト ====== */
+genCodeBtn.addEventListener("click", () => {
+    const code = Math.floor(Math.random() * 900000) + 100000; // 6桁
+    roomCodeInput.value = String(code);
+});
+
+copyCodeBtn.addEventListener("click", () => {
+    const text = roomCodeInput.value.trim();
+    if (!text) {
+        alert("コピーするコードがありません");
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => alert("コードをコピーしました"))
+            .catch(() => alert("コピーに失敗しました"));
+    } else {
+        roomCodeInput.select();
+        document.execCommand("copy");
+        alert("コードをコピーしました（古いAPI）");
+    }
+});
+
+pasteCodeBtn.addEventListener("click", async () => {
+    if (!(navigator.clipboard && navigator.clipboard.readText)) {
+        alert("この環境ではペーストAPIが使えません。長押しで貼り付けてください。");
+        return;
+    }
+    try {
+        const text = await navigator.clipboard.readText();
+        roomCodeInput.value = text;
+    } catch {
+        alert("ペーストに失敗しました");
+    }
+});
+
+/* ====== シグナリングAPI（短ポーリング） ====== */
+async function joinSignaling() {
+    const res = await fetch("/api/signaling", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "join",
+            roomCode,
+            role,
+        }),
+    });
+    if (!res.ok) throw new Error("join failed");
+}
+
+async function sendSignal(payload) {
+    if (!joinedSignaling) return;
+    try {
+        await fetch("/api/signaling", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "send",
+                roomCode,
+                role,
+                payload,
+            }),
+        });
+    } catch (e) {
+        console.error("sendSignal error:", e);
+        log("シグナリング送信中にエラーが発生しました。");
+    }
+}
+
+async function pollSignals() {
+    if (!joinedSignaling || !roomCode || !role) return;
+    try {
+        const res = await fetch("/api/signaling", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "recv",
+                roomCode,
+                role,
+            }),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const messages = data.messages || [];
+        for (const msg of messages) {
+            if (msg && msg.payload) {
+                await handleSignal(msg.payload);
+            }
+        }
+    } catch (e) {
+        console.error("poll error:", e);
+    }
+}
+
+function startPolling() {
+    if (pollTimer) return;
+    pollSignals();
+    pollTimer = setInterval(pollSignals, 1000);
+}
+
+function stopPolling() {
+    if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    }
+}
+
+async function leaveSignaling() {
+    if (!joinedSignaling) return;
+    try {
+        await fetch("/api/signaling", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "leave",
+                roomCode,
+                role,
+            }),
+        });
+    } catch (e) {
+        console.error("leave error:", e);
+    }
+    joinedSignaling = false;
+    setConn(false);
+    stopPolling();
+}
+
+window.addEventListener("beforeunload", () => {
+    leaveSignaling();
+});
+
+/* ====== 接続ボタン ====== */
+connectBtn.addEventListener("click", async () => {
+    if (joinedSignaling) {
+        log("すでにシグナリングに参加済みです。");
+        return;
+    }
+
+    roomCode = roomCodeInput.value.trim();
+    if (!roomCode) {
+        alert("接続コードを入力してください。");
+        return;
+    }
+    if (!role) {
+        alert("ホストかゲストを選択してください。");
+        return;
+    }
+
+    try {
+        await joinSignaling();
+        joinedSignaling = true;
+        setConn(true);
+        log(`シグナリングに参加しました。部屋コード: ${roomCode}`);
+        mainStatus.textContent = "相手が同じコードで接続するとP2P接続を開始します。";
+        startPolling();
+        initPeerConnectionIfNeeded();
+    } catch (e) {
+        console.error(e);
+        log("シグナリング接続に失敗しました。");
+        mainStatus.textContent = "シグナリング接続に失敗しました。";
+    }
+});
+
+/* ====== WebRTC ピア接続 ====== */
+const rtcConfig = {
+    iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+    ],
 };
 
-/* ホスト側：Answer適用 */
-btnApplyAnswer.onclick = async () => {
-  const txt = hostAnswerText.value.trim();
-  if (!txt) {
-    alert("BさんからのAnswerを貼り付けてください。");
-    return;
-  }
-  try {
-    const ans = JSON.parse(txt);
-    await pc.setRemoteDescription(ans);
-    hostStatus.textContent = "Answerを適用しました。接続を待機中…";
-    screenChat.classList.remove("hidden");
-  } catch (e) {
-    console.error(e);
-    alert("Answerの形式が不正です。コピー漏れや途中で切れていないか確認してください。");
-  }
-};
+function initPeerConnectionIfNeeded() {
+    if (pc) return;
+    pc = new RTCPeerConnection(rtcConfig);
 
-/* ===== ゲスト側：Answer生成 ===== */
-btnCreateAnswer.onclick = async () => {
-  const txt = guestOfferText.value.trim();
-  if (!txt) {
-    alert("AさんからのOfferを貼り付けてください。");
-    return;
-  }
-  try {
-    const offer = JSON.parse(txt);
-    await pc.setRemoteDescription(offer);
+    pc.onicecandidate = (event) => {
+        if (event.candidate) {
+            sendSignal({
+                type: "ice",
+                candidate: event.candidate,
+            });
+        }
+    };
 
+    pc.onconnectionstatechange = () => {
+        log(`PeerConnection state: ${pc.connectionState}`);
+        if (["disconnected", "failed", "closed"].includes(pc.connectionState)) {
+            cleanupConnection();
+            mainStatus.textContent = "P2P接続が切断されました。";
+        }
+    };
+
+    if (role === "guest") {
+        pc.ondatachannel = (event) => {
+            dataChannel = event.channel;
+            setupDataChannel();
+        };
+    }
+}
+
+async function handleSignal(payload) {
+    switch (payload.type) {
+        case "ready":
+            log("相手が入室しました。WebRTC 接続を開始します。");
+            await onReady();
+            break;
+        case "offer":
+            if (role === "guest") {
+                await onOffer(payload.sdp);
+            }
+            break;
+        case "answer":
+            if (role === "host") {
+                await onAnswer(payload.sdp);
+            }
+            break;
+        case "ice":
+            if (pc && payload.candidate) {
+                try {
+                    await pc.addIceCandidate(payload.candidate);
+                } catch (e) {
+                    console.error("Error adding ICE candidate:", e);
+                }
+            }
+            break;
+        case "peer-left":
+            log("相手がシグナリングから離脱しました。");
+            cleanupConnection();
+            break;
+        case "cancel":
+            log("相手が送信をキャンセルしました。");
+            break;
+    }
+}
+
+async function onReady() {
+    initPeerConnectionIfNeeded();
+
+    if (role === "host" && !dataChannel) {
+        dataChannel = pc.createDataChannel("file");
+        setupDataChannel();
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        await sendSignal({
+            type: "offer",
+            sdp: pc.localDescription,
+        });
+
+        log("SDP offer を送信しました。");
+    } else if (role === "guest") {
+        log("ホストからの offer を待機中です。");
+    }
+}
+
+async function onOffer(sdp) {
+    initPeerConnectionIfNeeded();
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
-    guestStatus.textContent = "Answerを作成中…（数秒かかることがあります）";
+    await sendSignal({
+        type: "answer",
+        sdp: pc.localDescription,
+    });
 
-    pc.onicecandidate = e => {
-      if (!e.candidate) {
-        guestAnswerOut.value = JSON.stringify(pc.localDescription);
-        guestStatus.textContent = "Answerが生成されました。Aさんに送ってください。";
-        screenChat.classList.remove("hidden");
-      }
+    log("SDP answer を送信しました。");
+}
+
+async function onAnswer(sdp) {
+    if (!pc) return;
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    log("answer を受信し、接続処理中です。");
+}
+
+function setupDataChannel() {
+    if (!dataChannel) return;
+
+    dataChannel.binaryType = "arraybuffer";
+
+    dataChannel.onopen = () => {
+        log("DataChannel open: ファイル送信が可能になりました。");
+        mainStatus.textContent = "P2P接続完了。STEP 3が開きます。ファイルを選んで送信できます。";
+        sendBtn.disabled = false;
+        showStep3();
     };
-  } catch (e) {
-    console.error(e);
-    alert("Offerの形式が不正です。コピー漏れや途中で切れていないか確認してください。");
-  }
-};
 
-/* ===== チャット送信 ===== */
-btnSend.onclick = () => {
-  const text = msgInput.value.trim();
-  if (!text) return;
-  if (!channel || channel.readyState !== "open") {
-    alert("まだ接続されていません。Aさん・Bさんの手順を確認してください。");
-    return;
-  }
-  channel.send(text);
-  addMsg(text, "me");
-  msgInput.value = "";
-};
+    dataChannel.onclose = () => {
+        log("DataChannel closed");
+        sendBtn.disabled = true;
+        cancelBtn.disabled = true;
+    };
 
-msgInput.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    btnSend.click();
-  }
+    dataChannel.onerror = (e) => {
+        console.error("DataChannel error:", e);
+        log("DataChannel エラーが発生しました。");
+    };
+
+    dataChannel.onmessage = (event) => {
+        const data = event.data;
+
+        if (typeof data === "string") {
+            try {
+                const obj = JSON.parse(data);
+                if (obj && obj.type === "file-meta") {
+                    incomingFileMeta = obj;
+                    incomingChunks = [];
+                    incomingBytes = 0;
+                    fileReceiving = true;
+                    log(`ファイル情報受信: ${obj.name} (${humanSize(obj.size)}). 受信開始。`);
+                    setProgress(0, "受信中: 0%");
+                    return;
+                }
+            } catch (e) {
+                if (data === "EOF") {
+                    if (fileReceiving && incomingFileMeta) {
+                        finalizeReceive();
+                    }
+                    return;
+                }
+            }
+        } else if (data instanceof ArrayBuffer) {
+            if (!fileReceiving || !incomingFileMeta) {
+                log("警告: メタ情報なしでバイナリデータを受信しました。");
+                return;
+            }
+            incomingChunks.push(new Uint8Array(data));
+            incomingBytes += data.byteLength;
+
+            const ratio = incomingFileMeta.size
+                ? incomingBytes / incomingFileMeta.size
+                : 0;
+            const percent = (ratio * 100).toFixed(1);
+            setProgress(ratio, `受信中: ${percent}% (${humanSize(incomingBytes)})`);
+        }
+    };
+}
+
+function finalizeReceive() {
+    fileReceiving = false;
+    const meta = incomingFileMeta;
+    const totalBytes = incomingBytes;
+
+    log(`受信完了: ${meta.name} (${humanSize(totalBytes)}). ブラウザで保存します。`);
+
+    const blob = new Blob(incomingChunks);
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = meta.name || "download.bin";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    setProgress(1, "受信完了");
+    incomingFileMeta = null;
+    incomingChunks = [];
+    incomingBytes = 0;
+}
+
+function cleanupConnection() {
+    sendBtn.disabled = true;
+    cancelBtn.disabled = true;
+    fileSending = false;
+    fileReceiving = false;
+
+    if (dataChannel) {
+        try { dataChannel.close(); } catch {}
+        dataChannel = null;
+    }
+    if (pc) {
+        try { pc.close(); } catch {}
+        pc = null;
+    }
+    setProgress(0, "送信 / 受信待機中");
+}
+
+/* ====== ファイル送信 ====== */
+sendBtn.addEventListener("click", async () => {
+    if (!dataChannel || dataChannel.readyState !== "open") {
+        alert("DataChannel が開いていません。接続状態を確認してください。");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    if (!file) {
+        alert("送信するファイルを選択してください。");
+        return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+        alert(`ファイルサイズが大きすぎます。最大 ${humanSize(MAX_FILE_SIZE)} までにしてください。`);
+        return;
+    }
+
+    fileSending = true;
+    sendingAbort = false;
+    sendBtn.disabled = true;
+    cancelBtn.disabled = false;
+
+    log(`送信開始: ${file.name} (${humanSize(file.size)}). チャンク分割して送信します。`);
+    setProgress(0, "送信中: 0%");
+
+    try {
+        await sendFileInChunks(file);
+        if (!sendingAbort) {
+            log("送信完了しました。");
+            setProgress(1, "送信完了");
+        } else {
+            log("送信をキャンセルしました。");
+        }
+    } catch (e) {
+        console.error(e);
+        log("送信中にエラーが発生しました。");
+    } finally {
+        fileSending = false;
+        cancelBtn.disabled = true;
+        if (dataChannel && dataChannel.readyState === "open") {
+            sendBtn.disabled = false;
+        }
+    }
 });
+
+cancelBtn.addEventListener("click", () => {
+    if (!fileSending) return;
+    sendingAbort = true;
+    cancelBtn.disabled = true;
+    if (dataChannel && dataChannel.readyState === "open") {
+        try {
+            dataChannel.send(JSON.stringify({ type: "cancel" }));
+        } catch {}
+    }
+    log("送信キャンセル要求を出しました。");
+});
+
+async function sendFileInChunks(file) {
+    const chunkSize = 64 * 1024; // 64KB
+    let offset = 0;
+
+    // メタ情報
+    dataChannel.send(JSON.stringify({
+        type: "file-meta",
+        name: file.name,
+        size: file.size,
+        lastModified: file.lastModified,
+    }));
+
+    while (offset < file.size) {
+        if (sendingAbort) break;
+
+        const slice = file.slice(offset, offset + chunkSize);
+        const buffer = await slice.arrayBuffer();
+
+        dataChannel.send(buffer);
+        offset += chunkSize;
+
+        const ratio = offset / file.size;
+        const percent = (ratio * 100).toFixed(1);
+        setProgress(ratio, `送信中: ${percent}% (${humanSize(offset)})`);
+
+        if (dataChannel.bufferedAmount > 16 * 1024 * 1024) {
+            await waitForBufferedAmountLow(dataChannel, 8 * 1024 * 1024);
+        }
+    }
+
+    if (!sendingAbort) {
+        dataChannel.send("EOF");
+    }
+}
+
+function waitForBufferedAmountLow(dc, threshold) {
+    return new Promise((resolve) => {
+        function check() {
+            if (dc.bufferedAmount <= threshold) {
+                dc.removeEventListener("bufferedamountlow", onLow);
+                resolve();
+            }
+        }
+        function onLow() {
+            check();
+        }
+
+        dc.addEventListener("bufferedamountlow", onLow);
+        check();
+
+        setTimeout(() => {
+            dc.removeEventListener("bufferedamountlow", onLow);
+            resolve();
+        }, 3000);
+    });
+}
+
+/* 初期状態 */
+setConn(false);
+setProgress(0, "送信 / 受信待機中");
 </script>
+
 </body>
 </html>
