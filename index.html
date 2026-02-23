@@ -1,999 +1,453 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>P2P File Share</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-/* ─────────────────────────────
-   基本デザイン
-────────────────────────────── */
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: radial-gradient(circle at 10% 20%, #f8cdda 0, #1d2b64 60%, #141e30 100%);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    padding: 12px 10px 20px;
-    box-sizing: border-box;
-}
-
-/* カード共通 */
-.card {
-    width: 100%;
-    max-width: 460px;
-    background: rgba(255,255,255,0.10);
-    border-radius: 22px;
-    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(255,255,255,0.18);
-    padding: 20px 18px 18px;
-    animation: fadeIn 0.45s ease;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    margin: 10px auto;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.98); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* タイトル部分 */
-.title-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-.title-accent {
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    background: conic-gradient(from 200deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee, #ff9a9e);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 14px;
-}
-h2 {
-    margin: 0;
-    text-align: center;
-    font-weight: 600;
-    color: #f9fafb;
-    letter-spacing: 0.03em;
-}
-
-/* ステータスラベル */
-.status-pill {
-    align-self: center;
-    margin: 6px 0 10px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    color: #e5ecff;
-    background: rgba(15,118,255,0.16);
-    border: 1px solid rgba(144,202,249,0.4);
-}
-
-/* 共通ラベル */
-.label {
-    font-size: 13px;
-    color: #e5e7eb;
-    margin-top: 10px;
-}
-
-/* ボタン共通 */
-button {
-    width: 100%;
-    padding: 11px;
-    margin-top: 10px;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(135deg, #4f46e5, #22d3ee);
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
-    box-shadow: 0 6px 14px rgba(15,23,42,0.45);
-}
-button:hover {
-    filter: brightness(1.05);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(15,23,42,0.6);
-}
-button:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(15,23,42,0.5);
-}
-button:disabled {
-    opacity: 0.5;
-    cursor: default;
-    box-shadow: none;
-    transform: none;
-}
-
-/* ロール選択ボタン */
-.role-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 6px;
-}
-.role-btn {
-    width: 100%;
-    padding: 10px;
-    border-radius: 14px;
-    border: 1px solid rgba(148,163,184,0.8);
-    background: rgba(15,23,42,0.85);
-    color: #e5e7eb;
-    font-size: 13px;
-    box-shadow: none;
-}
-.role-btn.selected {
-    border: none;
-    background: linear-gradient(135deg, #4f46e5, #22d3ee);
-    color: #f9fafb;
-    box-shadow: 0 6px 14px rgba(15,23,42,0.5);
-}
-
-/* 小さいボタン */
-.small-btn {
-    margin-top: 6px;
-    padding: 8px;
-    width: auto;
-    min-width: 72px;
-    border-radius: 12px;
-    font-size: 11px;
-    background: rgba(15,23,42,0.75);
-    box-shadow: none;
-}
-.small-btn:hover {
-    background: rgba(15,23,42,0.9);
-    box-shadow: none;
-}
-
-/* 入力系 */
-textarea, input {
-    width: 100%;
-    padding: 9px 10px;
-    margin-top: 6px;
-    border-radius: 14px;
-    border: 1px solid rgba(148,163,184,0.8);
-    background: rgba(15,23,42,0.65);
-    color: #e5e7eb;
-    outline: none;
-    font-size: 13px;
-    box-sizing: border-box;
-}
-textarea::placeholder,
-input::placeholder {
-    color: rgba(148,163,184,0.9);
-}
-
-/* メインステータス */
-#mainStatus {
-    text-align: center;
-    color: #e5ecff;
-    font-weight: 500;
-    font-size: 13px;
-    margin-bottom: 4px;
-}
-
-/* コード行 */
-.code-row {
-    display: flex;
-    gap: 6px;
-    margin-top: 6px;
-}
-.code-row input {
-    flex: 1;
-    margin-top: 0;
-}
-.code-btns {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-/* コネクションピル */
-.conn-pill {
-    align-self: flex-start;
-    margin-top: 8px;
-    padding: 4px 10px;
-    font-size: 11px;
-    background: rgba(15,23,42,0.75);
-    border: 1px solid rgba(148,163,184,0.7);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.conn-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: #f97373;
-}
-.conn-dot.on {
-    background: #4ade80;
-}
-
-/* ファイル行 */
-.file-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-top: 6px;
-}
-#fileInput {
-    flex: 1;
-    padding: 6px 8px;
-    font-size: 11px;
-    background: rgba(15,23,42,0.65);
-    border-radius: 12px;
-    border: 1px solid rgba(148,163,184,0.8);
-    color: #e5e7eb;
-}
-
-/* 進捗バー */
-.progress-box {
-    margin-top: 10px;
-}
-.progress-label {
-    font-size: 12px;
-    color: #e5e7eb;
-    margin-bottom: 4px;
-}
-.progress-wrap {
-    width: 100%;
-    height: 8px;
-    border-radius: 999px;
-    background: rgba(15,23,42,0.8);
-    border: 1px solid rgba(148,163,184,0.4);
-    overflow: hidden;
-}
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #22c55e, #38bdf8, #a855f7);
-    transition: width 0.12s linear;
-}
-
-/* ログ */
-#log {
-    margin-top: 10px;
-    padding: 8px 10px;
-    border-radius: 14px;
-    background: rgba(15,23,42,0.75);
-    border: 1px solid rgba(148,163,184,0.6);
-    font-size: 11px;
-    color: #e5e7eb;
-    max-height: 180px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-}
-.log-line {
-    margin: 2px 0;
-}
-
-/* フッター */
-.footer {
-    margin-top: 8px;
-    text-align: center;
-    font-size: 11px;
-    color: rgba(241,245,249,0.7);
-    letter-spacing: 0.04em;
-}
-
-/* 非表示用 */
-.hidden {
-    display: none;
-}
-
-/* PC時だけ中央寄せ */
-@media (min-width: 768px) {
-    body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-    }
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P2P Video Sender (WebRTC)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 12px; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    .box { border: 1px solid #000; padding: 10px; margin: 10px 0; }
+    .row { margin: 6px 0; }
+    textarea { width: 100%; height: 110px; }
+    input[type="text"] { width: 100%; }
+    button { padding: 6px 10px; margin-right: 6px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .small { font-size: 12px; }
+    progress { width: 100%; height: 18px; }
+    video { width: 100%; max-height: 60vh; background: #000; }
+    .warn { background: #fff3cd; border: 1px solid #000; padding: 8px; }
+  </style>
 </head>
 <body>
+  <h1>P2P 動画送受信（WebRTC / 手動ペアリング）</h1>
 
-<div class="card">
-    <div class="title-row">
-        <div class="title-accent">📦</div>
-        <h2>P2P File Share</h2>
-    </div>
-    <div class="status-pill">サーバーにファイルを保存しない・ブラウザ同士で直接送受信</div>
+  <div class="warn small">
+    ・このページはサーバー無しで動きます（相手と「接続文字列」をコピペで交換）。<br>
+    ・環境によってはP2P接続が成立しないことがあります（TURNなしのため）。<br>
+    ・受信側は受け取った動画サイズ分のメモリを使います（巨大ファイルは厳しい場合あり）。
+  </div>
 
-    <div id="mainStatus">まず「送る側（ホスト）」か「受け取る側（ゲスト）」を選んでください。</div>
+  <div class="box">
+    <div class="row"><b>状態</b></div>
+    <div id="status" class="mono">idle</div>
+    <div class="row small">あなたの役割：<span id="role" class="mono">未選択</span></div>
+  </div>
 
-    <!-- ステップ1: ロール選択 -->
-    <div class="label">STEP 1. あなたの役割</div>
-    <div class="role-row">
-        <button id="hostBtn" class="role-btn">送る側（ホスト）</button>
-        <button id="guestBtn" class="role-btn">受け取る側（ゲスト）</button>
-    </div>
+  <div class="box">
+    <div class="row"><b>① 送信側（動画を送る）</b></div>
 
-    <!-- ステップ2: 接続コードとシグナリング -->
-    <div id="step2" class="hidden">
-        <div class="label" id="step2Label">
-            STEP 2. 接続コード
-        </div>
-        <div class="code-row">
-            <input id="roomCodeInput" type="text" inputmode="numeric" pattern="[0-9]*"
-                   placeholder="6桁くらいの数字コード（例: 493821）">
-            <div class="code-btns">
-                <button id="genCodeBtn" class="small-btn">生成</button>
-                <button id="copyCodeBtn" class="small-btn">コピー</button>
-                <button id="pasteCodeBtn" class="small-btn">ペースト</button>
-            </div>
-        </div>
-
-        <button id="connectBtn">シグナリングに接続</button>
-
-        <div class="conn-pill" id="connPill">
-            <span class="conn-dot" id="connDot"></span>
-            <span id="connText">未接続</span>
-        </div>
+    <div class="row small">
+      1) 動画を選択 → 2)「オファー作成」→ 出た文字列を相手へ送る →<br>
+      3) 相手から返ってきた「回答」を貼って「回答を適用」→ 4) 接続できたら送信開始
     </div>
 
-    <!-- ステップ3: ファイル送信 -->
-    <div id="step3" class="hidden">
-        <div class="label">STEP 3. ファイル送信（最大1GB目安）</div>
-        <div class="file-row">
-            <input type="file" id="fileInput">
-            <button id="sendBtn" class="small-btn" disabled>送信</button>
-        </div>
-        <button id="cancelBtn" class="small-btn" disabled>送信キャンセル</button>
-
-        <div class="progress-box">
-            <div class="progress-label" id="progressText">送信 / 受信待機中</div>
-            <div class="progress-wrap">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-        </div>
-
-        <div id="log"></div>
+    <div class="row">
+      <input id="fileInput" type="file" accept="video/*" />
     </div>
-</div>
 
-<div class="footer">
-    taiboku_passent all right reserved
-</div>
+    <div class="row">
+      <button id="btnMakeOffer">オファー作成（送信側）</button>
+      <button id="btnApplyAnswer" disabled>回答を適用（送信側）</button>
+      <button id="btnSendFile" disabled>送信開始</button>
+    </div>
+
+    <div class="row small">送信側：相手へ送る文字列（オファー）</div>
+    <textarea id="offerOut" class="mono" readonly></textarea>
+
+    <div class="row small">送信側：相手から返ってきた文字列（回答）を貼る</div>
+    <textarea id="answerIn" class="mono" placeholder="相手から届いた回答を貼り付け"></textarea>
+
+    <div class="row">
+      <div class="small">送信進捗</div>
+      <progress id="sendProg" value="0" max="1"></progress>
+      <div id="sendInfo" class="mono small">-</div>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="row"><b>② 受信側（動画を受け取って再生・ダウンロード）</b></div>
+
+    <div class="row small">
+      1) 相手から届いた「オファー」を貼る → 2)「受け取って回答作成」→ 出た文字列を相手へ返す →<br>
+      3) 接続後に自動で受信。完了したら下で再生・ダウンロードできます。
+    </div>
+
+    <div class="row">
+      <button id="btnAcceptOffer">受け取って回答作成（受信側）</button>
+    </div>
+
+    <div class="row small">受信側：相手から届いた文字列（オファー）を貼る</div>
+    <textarea id="offerIn" class="mono" placeholder="相手から届いたオファーを貼り付け"></textarea>
+
+    <div class="row small">受信側：相手へ返す文字列（回答）</div>
+    <textarea id="answerOut" class="mono" readonly></textarea>
+
+    <div class="row">
+      <div class="small">受信進捗</div>
+      <progress id="recvProg" value="0" max="1"></progress>
+      <div id="recvInfo" class="mono small">-</div>
+    </div>
+
+    <div class="row">
+      <div class="small">受信した動画（受信完了後に再生）</div>
+      <video id="video" controls></video>
+      <div class="row">
+        <a id="downloadLink" href="#" download class="mono">ダウンロード（受信完了後に有効）</a>
+      </div>
+      <div class="small mono" id="videoInfo">-</div>
+    </div>
+  </div>
+
+  <div class="box small">
+    <b>使い方（超短縮）</b><br>
+    <ol>
+      <li>送信側：動画選択 → 「オファー作成」→ 出た文字列を相手へ</li>
+      <li>受信側：その文字列を貼る → 「受け取って回答作成」→ 出た文字列を送信側へ</li>
+      <li>送信側：回答を貼る → 「回答を適用」→ 「送信開始」</li>
+      <li>受信側：受信完了後、動画プレイヤーで再生 or ダウンロードリンクで保存</li>
+    </ol>
+  </div>
 
 <script>
-/* ====== DOM ====== */
-const hostBtn = document.getElementById("hostBtn");
-const guestBtn = document.getElementById("guestBtn");
-const roomCodeInput = document.getElementById("roomCodeInput");
-const genCodeBtn = document.getElementById("genCodeBtn");
-const copyCodeBtn = document.getElementById("copyCodeBtn");
-const pasteCodeBtn = document.getElementById("pasteCodeBtn");
-const connectBtn = document.getElementById("connectBtn");
+(() => {
+  // ====== UI helpers ======
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+  const roleEl = $("role");
+  const setStatus = (s) => statusEl.textContent = s;
 
-const connDot = document.getElementById("connDot");
-const connText = document.getElementById("connText");
-
-const mainStatus = document.getElementById("mainStatus");
-const step2 = document.getElementById("step2");
-const step2Label = document.getElementById("step2Label");
-const step3 = document.getElementById("step3");
-
-const fileInput = document.getElementById("fileInput");
-const sendBtn = document.getElementById("sendBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-
-const progressBar = document.getElementById("progressBar");
-const progressText = document.getElementById("progressText");
-const logEl = document.getElementById("log");
-
-/* ====== 状態 ====== */
-let role = null;             // "host" | "guest"
-let roomCode = "";
-let joinedSignaling = false;
-let pollTimer = null;
-
-let pc = null;
-let dataChannel = null;
-
-let fileSending = false;
-let fileReceiving = false;
-let sendingAbort = false;
-
-let incomingFileMeta = null;
-let incomingChunks = [];
-let incomingBytes = 0;
-
-const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB
-
-/* ====== ユーティリティ ====== */
-function log(text) {
-    const line = document.createElement("div");
-    line.className = "log-line";
-    const time = new Date().toLocaleTimeString("ja-JP", {
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-    });
-    line.textContent = `[${time}] ${text}`;
-    logEl.appendChild(line);
-    logEl.scrollTop = logEl.scrollHeight;
-}
-
-function setConn(connected) {
-    if (connected) {
-        connDot.classList.add("on");
-        connText.textContent = "シグナリング接続中";
-    } else {
-        connDot.classList.remove("on");
-        connText.textContent = "未接続";
-    }
-}
-
-function setProgress(ratio, label) {
-    const p = Math.max(0, Math.min(1, ratio || 0));
-    progressBar.style.width = (p * 100) + "%";
-    if (label !== undefined) progressText.textContent = label;
-}
-
-function humanSize(bytes) {
-    if (bytes === 0) return "0 B";
-    const units = ["B", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    const value = bytes / Math.pow(1024, i);
-    return value.toFixed(value >= 10 ? 1 : 2) + " " + units[i];
-}
-
-function showStep2() {
-    step2.classList.remove("hidden");
-}
-
-function showStep3() {
-    step3.classList.remove("hidden");
-}
-
-function updateRoleUI() {
-    if (role === "host") {
-        // ホスト用：コード生成＋コピーメイン
-        genCodeBtn.style.display = "block";
-        copyCodeBtn.style.display = "block";
-        pasteCodeBtn.style.display = "none";
-        step2Label.textContent = "STEP 2. 接続コード（ホスト用：新しく作って相手に教える）";
-        mainStatus.textContent = "あなたは『送る側（ホスト）』です。コードを作って相手に送ってください。";
-    } else if (role === "guest") {
-        // ゲスト用：ペーストメイン
-        genCodeBtn.style.display = "none";
-        copyCodeBtn.style.display = "none";
-        pasteCodeBtn.style.display = "block";
-        step2Label.textContent = "STEP 2. 接続コード（ゲスト用：教えてもらったコードを入れる）";
-        mainStatus.textContent = "あなたは『受け取る側（ゲスト）』です。ホストから教えてもらったコードを入れてください。";
-    }
-}
-
-/* ====== ロール選択 ====== */
-hostBtn.addEventListener("click", () => {
-    role = "host";
-    hostBtn.classList.add("selected");
-    guestBtn.classList.remove("selected");
-    updateRoleUI();
-    showStep2();
-});
-
-guestBtn.addEventListener("click", () => {
-    role = "guest";
-    guestBtn.classList.add("selected");
-    hostBtn.classList.remove("selected");
-    updateRoleUI();
-    showStep2();
-});
-
-/* ====== コード生成・コピー・ペースト ====== */
-genCodeBtn.addEventListener("click", () => {
-    const code = Math.floor(Math.random() * 900000) + 100000; // 6桁
-    roomCodeInput.value = String(code);
-});
-
-copyCodeBtn.addEventListener("click", () => {
-    const text = roomCodeInput.value.trim();
-    if (!text) {
-        alert("コピーするコードがありません");
-        return;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text)
-            .then(() => alert("コードをコピーしました"))
-            .catch(() => alert("コピーに失敗しました"));
-    } else {
-        roomCodeInput.select();
-        document.execCommand("copy");
-        alert("コードをコピーしました（古いAPI）");
-    }
-});
-
-pasteCodeBtn.addEventListener("click", async () => {
-    if (!(navigator.clipboard && navigator.clipboard.readText)) {
-        alert("この環境ではペーストAPIが使えません。長押しで貼り付けてください。");
-        return;
-    }
-    try {
-        const text = await navigator.clipboard.readText();
-        roomCodeInput.value = text;
-    } catch {
-        alert("ペーストに失敗しました");
-    }
-});
-
-/* ====== シグナリングAPI（短ポーリング） ====== */
-async function joinSignaling() {
-    const res = await fetch("/api/signaling", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            action: "join",
-            roomCode,
-            role,
-        }),
-    });
-    if (!res.ok) throw new Error("join failed");
-}
-
-async function sendSignal(payload) {
-    if (!joinedSignaling) return;
-    try {
-        await fetch("/api/signaling", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                action: "send",
-                roomCode,
-                role,
-                payload,
-            }),
-        });
-    } catch (e) {
-        console.error("sendSignal error:", e);
-        log("シグナリング送信中にエラーが発生しました。");
-    }
-}
-
-async function pollSignals() {
-    if (!joinedSignaling || !roomCode || !role) return;
-    try {
-        const res = await fetch("/api/signaling", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                action: "recv",
-                roomCode,
-                role,
-            }),
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        const messages = data.messages || [];
-        for (const msg of messages) {
-            if (msg && msg.payload) {
-                await handleSignal(msg.payload);
-            }
-        }
-    } catch (e) {
-        console.error("poll error:", e);
-    }
-}
-
-function startPolling() {
-    if (pollTimer) return;
-    pollSignals();
-    pollTimer = setInterval(pollSignals, 1000);
-}
-
-function stopPolling() {
-    if (pollTimer) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-    }
-}
-
-async function leaveSignaling() {
-    if (!joinedSignaling) return;
-    try {
-        await fetch("/api/signaling", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                action: "leave",
-                roomCode,
-                role,
-            }),
-        });
-    } catch (e) {
-        console.error("leave error:", e);
-    }
-    joinedSignaling = false;
-    setConn(false);
-    stopPolling();
-}
-
-window.addEventListener("beforeunload", () => {
-    leaveSignaling();
-});
-
-/* ====== 接続ボタン ====== */
-connectBtn.addEventListener("click", async () => {
-    if (joinedSignaling) {
-        log("すでにシグナリングに参加済みです。");
-        return;
-    }
-
-    roomCode = roomCodeInput.value.trim();
-    if (!roomCode) {
-        alert("接続コードを入力してください。");
-        return;
-    }
-    if (!role) {
-        alert("ホストかゲストを選択してください。");
-        return;
-    }
-
-    try {
-        await joinSignaling();
-        joinedSignaling = true;
-        setConn(true);
-        log(`シグナリングに参加しました。部屋コード: ${roomCode}`);
-        mainStatus.textContent = "相手が同じコードで接続するとP2P接続を開始します。";
-        startPolling();
-        initPeerConnectionIfNeeded();
-    } catch (e) {
-        console.error(e);
-        log("シグナリング接続に失敗しました。");
-        mainStatus.textContent = "シグナリング接続に失敗しました。";
-    }
-});
-
-/* ====== WebRTC ピア接続 ====== */
-const rtcConfig = {
+  // ====== WebRTC setup ======
+  // STUN only (no TURN). TURN requires a server and credentials.
+  const rtcConfig = {
     iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
-    ],
-};
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" }
+    ]
+  };
 
-function initPeerConnectionIfNeeded() {
-    if (pc) return;
+  let pc = null;
+  let dc = null;
+
+  // sending
+  let sendingFile = null;
+  let sendAbort = false;
+
+  // receiving
+  let recvMeta = null;
+  let recvBuffers = [];
+  let recvBytes = 0;
+
+  // We pack everything into one JSON "signal" after ICE gathering completes.
+  async function waitIceGatheringComplete(peer) {
+    if (peer.iceGatheringState === "complete") return;
+    await new Promise((resolve) => {
+      const check = () => {
+        if (peer.iceGatheringState === "complete") {
+          peer.removeEventListener("icegatheringstatechange", check);
+          resolve();
+        }
+      };
+      peer.addEventListener("icegatheringstatechange", check);
+    });
+  }
+
+  function makePeerConnection() {
+    if (pc) {
+      try { pc.close(); } catch {}
+    }
     pc = new RTCPeerConnection(rtcConfig);
 
-    pc.onicecandidate = (event) => {
-        if (event.candidate) {
-            sendSignal({
-                type: "ice",
-                candidate: event.candidate,
-            });
-        }
-    };
-
     pc.onconnectionstatechange = () => {
-        log(`PeerConnection state: ${pc.connectionState}`);
-        if (["disconnected", "failed", "closed"].includes(pc.connectionState)) {
-            cleanupConnection();
-            mainStatus.textContent = "P2P接続が切断されました。";
-        }
+      setStatus("pc.connectionState = " + pc.connectionState);
     };
 
-    if (role === "guest") {
-        pc.ondatachannel = (event) => {
-            dataChannel = event.channel;
-            setupDataChannel();
-        };
+    pc.ondatachannel = (ev) => {
+      dc = ev.channel;
+      setupDataChannel();
+    };
+
+    return pc;
+  }
+
+  function setupDataChannel() {
+    if (!dc) return;
+
+    dc.binaryType = "arraybuffer";
+
+    dc.onopen = () => {
+      setStatus("DataChannel open");
+      // Enable send if we are sender and have file
+      $("btnSendFile").disabled = !(sendingFile && dc.readyState === "open");
+    };
+
+    dc.onclose = () => {
+      setStatus("DataChannel closed");
+      $("btnSendFile").disabled = true;
+    };
+
+    dc.onerror = (e) => {
+      setStatus("DataChannel error: " + (e && e.message ? e.message : "unknown"));
+    };
+
+    dc.onmessage = (ev) => {
+      handleIncoming(ev.data);
+    };
+  }
+
+  // ====== Signaling encode/decode ======
+  function encodeSignal(desc) {
+    const obj = { type: desc.type, sdp: desc.sdp };
+    const json = JSON.stringify(obj);
+    const b64 = btoa(unescape(encodeURIComponent(json)));
+    return b64;
+  }
+
+  function decodeSignal(b64) {
+    const json = decodeURIComponent(escape(atob(b64.trim())));
+    const obj = JSON.parse(json);
+    if (!obj || !obj.type || !obj.sdp) throw new Error("invalid signal");
+    return obj;
+  }
+
+  async function setRemoteFromB64(b64) {
+    const obj = decodeSignal(b64);
+    await pc.setRemoteDescription(obj);
+  }
+
+  // ====== File transfer protocol over DataChannel ======
+  // We send:
+  // 1) JSON meta message: {"t":"meta","name":...,"size":...,"mime":...}
+  // 2) binary chunks (ArrayBuffer)
+  // 3) JSON end message: {"t":"end"}
+  const CHUNK_SIZE = 64 * 1024; // 64KB
+  const HIGH_WATER_MARK = 8 * 1024 * 1024; // 8MB bufferedAmount threshold
+
+  function sendJson(obj) {
+    dc.send(JSON.stringify(obj));
+  }
+
+  async function sendFile(file) {
+    if (!dc || dc.readyState !== "open") {
+      alert("接続されていません");
+      return;
     }
-}
 
-async function handleSignal(payload) {
-    switch (payload.type) {
-        case "ready":
-            log("相手が入室しました。WebRTC 接続を開始します。");
-            await onReady();
-            break;
-        case "offer":
-            if (role === "guest") {
-                await onOffer(payload.sdp);
-            }
-            break;
-        case "answer":
-            if (role === "host") {
-                await onAnswer(payload.sdp);
-            }
-            break;
-        case "ice":
-            if (pc && payload.candidate) {
-                try {
-                    await pc.addIceCandidate(payload.candidate);
-                } catch (e) {
-                    console.error("Error adding ICE candidate:", e);
-                }
-            }
-            break;
-        case "peer-left":
-            log("相手がシグナリングから離脱しました。");
-            cleanupConnection();
-            break;
-        case "cancel":
-            log("相手が送信をキャンセルしました。");
-            break;
-    }
-}
+    sendAbort = false;
+    const total = file.size;
+    let sent = 0;
 
-async function onReady() {
-    initPeerConnectionIfNeeded();
+    $("sendProg").max = total || 1;
+    $("sendProg").value = 0;
+    $("sendInfo").textContent = "start...";
 
-    if (role === "host" && !dataChannel) {
-        dataChannel = pc.createDataChannel("file");
-        setupDataChannel();
+    sendJson({ t: "meta", name: file.name, size: file.size, mime: file.type || "application/octet-stream" });
 
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-
-        await sendSignal({
-            type: "offer",
-            sdp: pc.localDescription,
-        });
-
-        log("SDP offer を送信しました。");
-    } else if (role === "guest") {
-        log("ホストからの offer を待機中です。");
-    }
-}
-
-async function onOffer(sdp) {
-    initPeerConnectionIfNeeded();
-    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-
-    await sendSignal({
-        type: "answer",
-        sdp: pc.localDescription,
+    // Flow control using bufferedAmount
+    dc.bufferedAmountLowThreshold = HIGH_WATER_MARK / 2;
+    const waitBufferedLow = () => new Promise((resolve) => {
+      if (dc.bufferedAmount < HIGH_WATER_MARK) return resolve();
+      const onLow = () => {
+        dc.removeEventListener("bufferedamountlow", onLow);
+        resolve();
+      };
+      dc.addEventListener("bufferedamountlow", onLow);
     });
 
-    log("SDP answer を送信しました。");
-}
-
-async function onAnswer(sdp) {
-    if (!pc) return;
-    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-    log("answer を受信し、接続処理中です。");
-}
-
-function setupDataChannel() {
-    if (!dataChannel) return;
-
-    dataChannel.binaryType = "arraybuffer";
-
-    dataChannel.onopen = () => {
-        log("DataChannel open: ファイル送信が可能になりました。");
-        mainStatus.textContent = "P2P接続完了。STEP 3が開きます。ファイルを選んで送信できます。";
-        sendBtn.disabled = false;
-        showStep3();
-    };
-
-    dataChannel.onclose = () => {
-        log("DataChannel closed");
-        sendBtn.disabled = true;
-        cancelBtn.disabled = true;
-    };
-
-    dataChannel.onerror = (e) => {
-        console.error("DataChannel error:", e);
-        log("DataChannel エラーが発生しました。");
-    };
-
-    dataChannel.onmessage = (event) => {
-        const data = event.data;
-
-        if (typeof data === "string") {
-            try {
-                const obj = JSON.parse(data);
-                if (obj && obj.type === "file-meta") {
-                    incomingFileMeta = obj;
-                    incomingChunks = [];
-                    incomingBytes = 0;
-                    fileReceiving = true;
-                    log(`ファイル情報受信: ${obj.name} (${humanSize(obj.size)}). 受信開始。`);
-                    setProgress(0, "受信中: 0%");
-                    return;
-                }
-            } catch (e) {
-                if (data === "EOF") {
-                    if (fileReceiving && incomingFileMeta) {
-                        finalizeReceive();
-                    }
-                    return;
-                }
-            }
-        } else if (data instanceof ArrayBuffer) {
-            if (!fileReceiving || !incomingFileMeta) {
-                log("警告: メタ情報なしでバイナリデータを受信しました。");
-                return;
-            }
-            incomingChunks.push(new Uint8Array(data));
-            incomingBytes += data.byteLength;
-
-            const ratio = incomingFileMeta.size
-                ? incomingBytes / incomingFileMeta.size
-                : 0;
-            const percent = (ratio * 100).toFixed(1);
-            setProgress(ratio, `受信中: ${percent}% (${humanSize(incomingBytes)})`);
-        }
-    };
-}
-
-function finalizeReceive() {
-    fileReceiving = false;
-    const meta = incomingFileMeta;
-    const totalBytes = incomingBytes;
-
-    log(`受信完了: ${meta.name} (${humanSize(totalBytes)}). ブラウザで保存します。`);
-
-    const blob = new Blob(incomingChunks);
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = meta.name || "download.bin";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-
-    setProgress(1, "受信完了");
-    incomingFileMeta = null;
-    incomingChunks = [];
-    incomingBytes = 0;
-}
-
-function cleanupConnection() {
-    sendBtn.disabled = true;
-    cancelBtn.disabled = true;
-    fileSending = false;
-    fileReceiving = false;
-
-    if (dataChannel) {
-        try { dataChannel.close(); } catch {}
-        dataChannel = null;
-    }
-    if (pc) {
-        try { pc.close(); } catch {}
-        pc = null;
-    }
-    setProgress(0, "送信 / 受信待機中");
-}
-
-/* ====== ファイル送信 ====== */
-sendBtn.addEventListener("click", async () => {
-    if (!dataChannel || dataChannel.readyState !== "open") {
-        alert("DataChannel が開いていません。接続状態を確認してください。");
+    while (sent < total) {
+      if (sendAbort) {
+        $("sendInfo").textContent = "aborted";
         return;
+      }
+
+      const end = Math.min(sent + CHUNK_SIZE, total);
+      const slice = file.slice(sent, end);
+      const buf = await slice.arrayBuffer();
+
+      if (dc.bufferedAmount >= HIGH_WATER_MARK) {
+        await waitBufferedLow();
+      }
+
+      dc.send(buf);
+      sent = end;
+
+      $("sendProg").value = sent;
+      $("sendInfo").textContent = `${sent} / ${total} bytes`;
     }
 
-    const file = fileInput.files[0];
-    if (!file) {
-        alert("送信するファイルを選択してください。");
+    sendJson({ t: "end" });
+    $("sendInfo").textContent = `done: ${total} bytes`;
+  }
+
+  function handleIncoming(data) {
+    if (typeof data === "string") {
+      let msg = null;
+      try { msg = JSON.parse(data); } catch { return; }
+      if (!msg || !msg.t) return;
+
+      if (msg.t === "meta") {
+        recvMeta = msg;
+        recvBuffers = [];
+        recvBytes = 0;
+
+        $("recvProg").max = recvMeta.size || 1;
+        $("recvProg").value = 0;
+        $("recvInfo").textContent = `meta: ${recvMeta.name} (${recvMeta.size} bytes, ${recvMeta.mime})`;
+
+        // Reset video + download link
+        $("video").removeAttribute("src");
+        $("video").load();
+        $("videoInfo").textContent = "-";
+        const a = $("downloadLink");
+        a.href = "#";
+        a.removeAttribute("download");
+        a.textContent = "ダウンロード（受信完了後に有効）";
         return;
-    }
+      }
 
-    if (file.size > MAX_FILE_SIZE) {
-        alert(`ファイルサイズが大きすぎます。最大 ${humanSize(MAX_FILE_SIZE)} までにしてください。`);
+      if (msg.t === "end") {
+        finalizeReceive();
         return;
+      }
+      return;
     }
 
-    fileSending = true;
-    sendingAbort = false;
-    sendBtn.disabled = true;
-    cancelBtn.disabled = false;
+    if (data instanceof ArrayBuffer) {
+      if (!recvMeta) return;
+      recvBuffers.push(new Uint8Array(data));
+      recvBytes += data.byteLength;
 
-    log(`送信開始: ${file.name} (${humanSize(file.size)}). チャンク分割して送信します。`);
-    setProgress(0, "送信中: 0%");
+      $("recvProg").value = recvBytes;
+      $("recvInfo").textContent = `${recvBytes} / ${recvMeta.size} bytes`;
+      return;
+    }
+  }
+
+  function finalizeReceive() {
+    if (!recvMeta) return;
 
     try {
-        await sendFileInChunks(file);
-        if (!sendingAbort) {
-            log("送信完了しました。");
-            setProgress(1, "送信完了");
-        } else {
-            log("送信をキャンセルしました。");
-        }
+      const blob = new Blob(recvBuffers, { type: recvMeta.mime || "video/mp4" });
+      const url = URL.createObjectURL(blob);
+
+      // Set video source
+      const v = $("video");
+      v.src = url;
+      v.controls = true;
+
+      // Set download link
+      const a = $("downloadLink");
+      a.href = url;
+      a.download = recvMeta.name || "received_video";
+      a.textContent = `ダウンロード: ${a.download}`;
+
+      $("videoInfo").textContent = `received: ${recvMeta.name} (${recvBytes} bytes)`;
+      $("recvInfo").textContent = "done";
     } catch (e) {
-        console.error(e);
-        log("送信中にエラーが発生しました。");
-    } finally {
-        fileSending = false;
-        cancelBtn.disabled = true;
-        if (dataChannel && dataChannel.readyState === "open") {
-            sendBtn.disabled = false;
-        }
+      $("recvInfo").textContent = "finalize error: " + (e && e.message ? e.message : "unknown");
     }
-});
+  }
 
-cancelBtn.addEventListener("click", () => {
-    if (!fileSending) return;
-    sendingAbort = true;
-    cancelBtn.disabled = true;
-    if (dataChannel && dataChannel.readyState === "open") {
-        try {
-            dataChannel.send(JSON.stringify({ type: "cancel" }));
-        } catch {}
+  // ====== UI events ======
+  $("fileInput").addEventListener("change", () => {
+    const f = $("fileInput").files && $("fileInput").files[0];
+    sendingFile = f || null;
+    $("btnSendFile").disabled = !(sendingFile && dc && dc.readyState === "open");
+    roleEl.textContent = sendingFile ? "送信側候補" : "未選択";
+  });
+
+  // Sender: create offer
+  $("btnMakeOffer").addEventListener("click", async () => {
+    try {
+      roleEl.textContent = "送信側";
+      setStatus("creating offer...");
+
+      makePeerConnection();
+
+      // Create data channel as sender
+      dc = pc.createDataChannel("file", { ordered: true });
+      setupDataChannel();
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await waitIceGatheringComplete(pc);
+
+      const b64 = encodeSignal(pc.localDescription);
+      $("offerOut").value = b64;
+      $("btnApplyAnswer").disabled = false;
+
+      setStatus("offer ready (copy to receiver)");
+    } catch (e) {
+      setStatus("offer error: " + (e && e.message ? e.message : "unknown"));
     }
-    log("送信キャンセル要求を出しました。");
-});
+  });
 
-async function sendFileInChunks(file) {
-    const chunkSize = 64 * 1024; // 64KB
-    let offset = 0;
+  // Sender: apply answer
+  $("btnApplyAnswer").addEventListener("click", async () => {
+    try {
+      if (!pc) {
+        alert("先にオファーを作成してください");
+        return;
+      }
+      const b64 = $("answerIn").value.trim();
+      if (!b64) {
+        alert("回答を貼ってください");
+        return;
+      }
 
-    // メタ情報
-    dataChannel.send(JSON.stringify({
-        type: "file-meta",
-        name: file.name,
-        size: file.size,
-        lastModified: file.lastModified,
-    }));
+      setStatus("applying answer...");
+      await setRemoteFromB64(b64);
 
-    while (offset < file.size) {
-        if (sendingAbort) break;
-
-        const slice = file.slice(offset, offset + chunkSize);
-        const buffer = await slice.arrayBuffer();
-
-        dataChannel.send(buffer);
-        offset += chunkSize;
-
-        const ratio = offset / file.size;
-        const percent = (ratio * 100).toFixed(1);
-        setProgress(ratio, `送信中: ${percent}% (${humanSize(offset)})`);
-
-        if (dataChannel.bufferedAmount > 16 * 1024 * 1024) {
-            await waitForBufferedAmountLow(dataChannel, 8 * 1024 * 1024);
-        }
+      setStatus("answer applied. waiting channel open...");
+      // send button enabled by dc.onopen
+    } catch (e) {
+      setStatus("apply answer error: " + (e && e.message ? e.message : "unknown"));
     }
+  });
 
-    if (!sendingAbort) {
-        dataChannel.send("EOF");
+  // Sender: send file
+  $("btnSendFile").addEventListener("click", async () => {
+    if (!sendingFile) {
+      alert("送る動画を選択してください");
+      return;
     }
-}
+    if (!dc || dc.readyState !== "open") {
+      alert("接続されていません");
+      return;
+    }
+    await sendFile(sendingFile);
+  });
 
-function waitForBufferedAmountLow(dc, threshold) {
-    return new Promise((resolve) => {
-        function check() {
-            if (dc.bufferedAmount <= threshold) {
-                dc.removeEventListener("bufferedamountlow", onLow);
-                resolve();
-            }
-        }
-        function onLow() {
-            check();
-        }
+  // Receiver: accept offer, create answer
+  $("btnAcceptOffer").addEventListener("click", async () => {
+    try {
+      roleEl.textContent = "受信側";
+      const offerB64 = $("offerIn").value.trim();
+      if (!offerB64) {
+        alert("オファーを貼ってください");
+        return;
+      }
 
-        dc.addEventListener("bufferedamountlow", onLow);
-        check();
+      setStatus("accepting offer...");
+      makePeerConnection();
 
-        setTimeout(() => {
-            dc.removeEventListener("bufferedamountlow", onLow);
-            resolve();
-        }, 3000);
-    });
-}
+      await setRemoteFromB64(offerB64);
 
-/* 初期状態 */
-setConn(false);
-setProgress(0, "送信 / 受信待機中");
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await waitIceGatheringComplete(pc);
+
+      const b64 = encodeSignal(pc.localDescription);
+      $("answerOut").value = b64;
+
+      setStatus("answer ready (send back to sender)");
+      // DataChannel arrives via pc.ondatachannel
+    } catch (e) {
+      setStatus("accept offer error: " + (e && e.message ? e.message : "unknown"));
+    }
+  });
+
+})();
 </script>
-
 </body>
 </html>
